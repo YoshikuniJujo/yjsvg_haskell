@@ -1,0 +1,9 @@
+Name:		yjsvg
+Version:	0.1.4
+
+Cabal-Version:	>= 1.2
+Build-Type:	Simple
+
+Library
+  Exposed-Modules:	Text.XML.YJSVG
+  Build-Depends:	base>4, HaXml
