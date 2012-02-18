@@ -2,11 +2,17 @@ module Text.XML.YJSVG (
   showSVG
 , SVG(..)
 , Transform(..)
+, yjsvgVersion
 ) where
 
-import Text.XML.HaXml
+import Text.XML.HaXml(AttValue(..), QName(..), Prolog(..),
+	EncodingDecl(..), XMLDecl(..), SystemLiteral(..), PubidLiteral(..),
+	ExternalID(..), DocTypeDecl(..), Misc(..), Element(..), Content(..),
+	Document(..))
 import Text.XML.HaXml.Pretty
-import Text.XML.HaXml.Types
+
+yjsvgVersion :: (Int, String)
+yjsvgVersion = (1, "0.1.6")
 
 data SVG   = Line Double Double Double Double Color Double |
              Polyline [ ( Double, Double ) ] Color Color Double |
@@ -26,6 +32,7 @@ data Transform = Matrix Double Double Double Double Double Double |
 showTrans :: Transform -> String
 showTrans (Translate tx ty) = "translate(" ++ show tx ++ "," ++ show ty ++ ")"
 showTrans (Scale sx sy) = "scale(" ++ show sx ++ "," ++ show sy ++ ")"
+showTrans _ = error "not implemented yet"
 
 -- instance Show [ SVG ] where
 --  show = showSVG
@@ -96,7 +103,7 @@ svgToElem (Image x y w h p)
 svgToElem (Group trs svgs)
   = Elem (N "g") (
       map (\ tr -> let a = showTrans tr
-                    in ( N "transform", AttValue [ Left $ a ] ) ) trs
+                    in ( N "transform", AttValue [ Left a ] ) ) trs
      ) $ map (flip CElem () . svgToElem) svgs
 
 
@@ -105,18 +112,23 @@ svgToXml w h svgs
   = Document prlg ent
       (Elem (N "svg") (emAtt w h) $ map (flip CElem () . svgToElem) svgs) els
 
+pmsc :: [Misc]
 pmsc    = [ Comment " MADE BY SVG.HS " ]
+pblit, sslit :: String
 pblit   = "-//W3C//DTD SVG 1.1//EN"
 sslit   = "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"
+doctype :: DocTypeDecl
 doctype = DTD (N "svg") (Just (PUBLIC (PubidLiteral pblit) (SystemLiteral sslit))) []
+xmldcl :: XMLDecl
 xmldcl  = XMLDecl "1.0" (Just (EncodingDecl "UTF-8")) Nothing
+prlg :: Prolog
 prlg    = Prolog (Just xmldcl) pmsc (Just doctype) []
 
+xmlns, ver, xlink :: String
 xmlns   = "http://www.w3.org/2000/svg"
 ver     = "1.1"
 xlink   = "http://www.w3.org/1999/xlink"
-width   = "400"
-height  = "640"
+emAtt :: (Show a, Show b) => a -> b -> [(QName, AttValue)]
 emAtt  w h = [
    ( N "xmlns", AttValue [ Left xmlns ] )
  , ( N "version", AttValue [ Left ver ] )
@@ -124,7 +136,16 @@ emAtt  w h = [
  , ( N "width", AttValue [ Left $ show w ] )
  , ( N "height", AttValue [ Left $ show h ] )
  ]
-em ougon= Elem (N "svg") (emAtt 100 200) [ CElem rect (), CElem (text ougon) () ]
+ent, els :: [a]
+ent     = []
+els     = []
+{-
+height, width :: String
+width   = "400"
+height  = "640"
+em :: CharData -> Element ()
+em ougon= Elem (N "svg") (emAtt (100 :: Int) (200 :: Int)) [ CElem rect (), CElem (text ougon) () ]
+rect :: Element i
 rect = Elem (N "rect") [
    ( N "x", AttValue [ Left "20" ] )
  , ( N "y", AttValue [ Left "30" ] )
@@ -133,22 +154,21 @@ rect = Elem (N "rect") [
  , ( N "fill", AttValue [ Left "red" ] )
  , ( N "stroke", AttValue [ Left "none" ] )
  ] []
+text :: CharData -> Element ()
 text ougon = Elem (N "text") [
    ( N "x", AttValue [ Left "20" ] )
  , ( N "y", AttValue [ Left "50" ] )
  , ( N "font-size", AttValue [ Left "20" ] )
  ] [ CString False ougon () ]
 
-ent     = []
-els     = []
 -- els     = [ Comment "MADE BY SIMPLE.HS" ]
 
+docu :: CharData -> Document ()
 docu ougon = Document prlg ent (em ougon) els
 
-{-
 svgMain = do
   ougonXml <- readFile "ougon.xml"
   let Document _ _ (Elem "text" _ [ CString _ ougon _ ]) _
         = xmlParse "ougon.xml" ougonXml
   print $ document $ svgToXml 100 200 [ Rect 20 30 80 90 "black" "purple", Text 40 50 30 "underline" "purple" "good" ]
-  -}
+-}
