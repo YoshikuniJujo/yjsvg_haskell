@@ -1,5 +1,5 @@
 Build-Type:	Simple
-Cabal-Version:	>= 1.2
+Cabal-Version:	>= 1.6
 
 Name:		yjsvg
 Version:	0.1.6
