@@ -2,3 +2,4 @@
 .yavie.*
 /_darcs/
 /*.ebuild
+/tmp/
