@@ -2,6 +2,7 @@ module Text.XML.YJSVG (
   showSVG
 , SVG(..)
 , Transform(..)
+, Color(..)
 , yjsvgVersion
 ) where
 
@@ -10,6 +11,7 @@ import Text.XML.HaXml(AttValue(..), QName(..), Prolog(..),
 	ExternalID(..), DocTypeDecl(..), Misc(..), Element(..), Content(..),
 	Document(..))
 import Text.XML.HaXml.Pretty
+import Data.Word(Word8)
 
 yjsvgVersion :: (Int, String)
 yjsvgVersion = (1, "0.1.6")
@@ -21,7 +23,21 @@ data SVG   = Line Double Double Double Double Color Double |
              Text Double Double Double Color String |
 	     Image Double Double Double Double FilePath |
 	     Group [ Transform ] [ SVG ]
-type Color = String
+data Color
+	= ColorName{
+		colorName :: String
+	 }
+	| RGB {
+		colorRed :: Word8,
+		colorGreen ::  Word8,
+		colorBlue ::  Word8
+	 }
+
+mkColorStr :: Color -> String
+mkColorStr ColorName{colorName = n} = n
+mkColorStr RGB{colorRed = r, colorGreen = g, colorBlue = b} =
+	"rgb(" ++ show r ++ "," ++ show g ++ "," ++ show b ++ ")"
+
 data Transform = Matrix Double Double Double Double Double Double |
                  Translate Double Double |
 		 Scale Double Double |
@@ -47,15 +63,15 @@ svgToElem (Line x1 y1 x2 y2 color lineWidth)
      , ( N "y1", AttValue [ Left $ show y1 ] )
      , ( N "x2", AttValue [ Left $ show x2 ] )
      , ( N "y2", AttValue [ Left $ show y2 ] )
-     , ( N "stroke", AttValue [ Left color ] )
+     , ( N "stroke", AttValue [ Left $ mkColorStr color ] )
      , ( N "stroke-width", AttValue [ Left $ show lineWidth ] )
      ] []
 
 svgToElem (Polyline points fillColor lineColor lineWidth)
   = Elem (N "polyline") [
        ( N "points", AttValue [ Left $ pointsToAttVal points ] )
-     , ( N "fill"  , AttValue [ Left fillColor ] )
-     , ( N "stroke", AttValue [ Left lineColor ] )
+     , ( N "fill"  , AttValue [ Left $ mkColorStr fillColor ] )
+     , ( N "stroke", AttValue [ Left $ mkColorStr lineColor ] )
      , ( N "stroke-width", AttValue [ Left $ show lineWidth ] )
      ] []
   where
@@ -71,8 +87,8 @@ svgToElem (Rect x y w h sw cf cs)
  , ( N "width", AttValue [ Left $ show w ] )
  , ( N "height", AttValue [ Left $ show h ] )
  , ( N "stroke-width", AttValue [ Left $ show sw ] )
- , ( N "fill", AttValue [ Left cf ] )
- , ( N "stroke", AttValue [ Left cs ] )
+ , ( N "fill", AttValue [ Left $ mkColorStr cf ] )
+ , ( N "stroke", AttValue [ Left $ mkColorStr cs ] )
  ] []
 
 svgToElem (Text x y s c t)
@@ -80,7 +96,7 @@ svgToElem (Text x y s c t)
    ( N "x", AttValue [ Left $ show x ] )
  , ( N "y", AttValue [ Left $ show y ] )
  , ( N "font-size", AttValue [ Left $ show s ] )
- , ( N "fill", AttValue [ Left c ] )
+ , ( N "fill", AttValue [ Left $ mkColorStr c ] )
  ] [ CString False t () ]
 
 svgToElem (Circle x y r c)
@@ -88,7 +104,7 @@ svgToElem (Circle x y r c)
        ( N "cx", AttValue [ Left $ show x ] )
      , ( N "cy", AttValue [ Left $ show y ] )
      , ( N "r", AttValue [ Left $ show r ] )
-     , ( N "fill", AttValue [ Left c ] )
+     , ( N "fill", AttValue [ Left $ mkColorStr c ] )
      ] []
 
 svgToElem (Image x y w h p)

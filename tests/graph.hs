@@ -1,7 +1,7 @@
 import Text.XML.YJSVG
 
 main = putStrLn $ showSVG 600 550 $ Group [ Translate 0 100 ] weatherGraph : [
-   Text 20 20 15 "black" "[ 1897-2009 ]"
+   Text 20 20 15 (ColorName "black") "[ 1897-2009 ]"
  ]
 
 weatherGraph :: [ SVG ]
@@ -57,13 +57,14 @@ mkGraphSVG bs scl ln vss
     map mkLines ln ++ map (uncurry $ mkGraphPolyline bs scl) vss
   where
   mkLines :: Double -> SVG
-  mkLines v = Line 60 (400 - (v-bs) * scl) 595 (400 - (v-bs) * scl) "gray" 1
+  mkLines v = Line 60 (400 - (v-bs) * scl) 595 (400 - (v-bs) * scl)
+	(ColorName "gray") 1
   mkText :: Double -> SVG
-  mkText l = Text 20 (402.5 - (l-bs) * scl) 10 "gray" $ show l
+  mkText l = Text 20 (402.5 - (l-bs) * scl) 10 (ColorName "gray") $ show l
 
 mkGraphPolyline :: Double -> Double -> String -> [ Double ] -> SVG
 mkGraphPolyline bs scl cl vals
-  = Polyline points "none" cl 2
+  = Polyline points (ColorName "none") (ColorName cl) 2
   where
   points :: [ (Double, Double) ]
   points = zipWith (\i v -> ( 90 + i * 4, 400 - (v-bs) * scl )) [ 0 .. ] vals
