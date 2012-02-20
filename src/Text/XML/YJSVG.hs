@@ -3,6 +3,7 @@ module Text.XML.YJSVG (
 , SVG(..)
 , Transform(..)
 , Color(..)
+, Position(..)
 , yjsvgVersion
 ) where
 
@@ -17,13 +18,21 @@ yjsvgVersion :: (Int, String)
 yjsvgVersion = (3, "0.1.8")
 
 type Font = String
+data Position
+	= TopLeft{posX :: Double, posY :: Double}
+	| Center{posX :: Double, posY :: Double}
+	deriving Show
 
-data SVG   = Line Double Double Double Double Color Double |
-             Polyline [ ( Double, Double ) ] Color Color Double |
-             Rect Double Double Double Double Double Color Color |
-	     Circle Double Double Double Color |
-             Text Double Double Double Color Font String |
-	     Image Double Double Double Double FilePath |
+getPos :: Double -> Double -> Position -> (Double, Double)
+getPos _ _ TopLeft{posX = x, posY = y} = (x, y)
+getPos w h Center{posX = x, posY = y} = (x + w / 2, - y + h / 2)
+
+data SVG   = Line Position Position Color Double |
+             Polyline [Position] Color Color Double |
+             Rect Position Double Double Double Color Color |
+	     Circle Position Double Color |
+             Text Position Double Color Font String |
+	     Image Position Double Double FilePath |
 	     Group [ Transform ] [ SVG ]
 	deriving Show
 data Color
@@ -61,8 +70,8 @@ showTrans _ = error "not implemented yet"
 showSVG :: Double -> Double -> [ SVG ] -> String
 showSVG w h = show . document . svgToXml w h
 
-svgToElem :: SVG -> Element ()
-svgToElem (Line x1 y1 x2 y2 color lineWidth)
+svgToElem :: Double -> Double -> SVG -> Element ()
+svgToElem pw ph (Line p1 p2 color lineWidth)
   = Elem (N "line") [
        ( N "x1", AttValue [ Left $ show x1 ] )
      , ( N "y1", AttValue [ Left $ show y1 ] )
@@ -71,8 +80,11 @@ svgToElem (Line x1 y1 x2 y2 color lineWidth)
      , ( N "stroke", AttValue [ Left $ mkColorStr color ] )
      , ( N "stroke-width", AttValue [ Left $ show lineWidth ] )
      ] []
+	where
+	(x1, y1) = getPos pw ph p1
+	(x2, y2) = getPos pw ph p2
 
-svgToElem (Polyline points fillColor lineColor lineWidth)
+svgToElem pw ph (Polyline points fillColor lineColor lineWidth)
   = Elem (N "polyline") [
        ( N "points", AttValue [ Left $ pointsToAttVal points ] )
      , ( N "fill"  , AttValue [ Left $ mkColorStr fillColor ] )
@@ -80,12 +92,13 @@ svgToElem (Polyline points fillColor lineColor lineWidth)
      , ( N "stroke-width", AttValue [ Left $ show lineWidth ] )
      ] []
   where
-  pointsToAttVal :: [ ( Double, Double ) ] -> String
+  pointsToAttVal :: [Position] -> String
   pointsToAttVal [] = ""
-  pointsToAttVal ( (x, y):ps )
-    = show x ++ "," ++ show y ++ " " ++ pointsToAttVal ps
+  pointsToAttVal (p : ps)
+    = let (x, y) = getPos pw ph p in
+	show x ++ "," ++ show y ++ " " ++ pointsToAttVal ps
 
-svgToElem (Rect x y w h sw cf cs)
+svgToElem pw ph (Rect p w h sw cf cs)
   = Elem (N "rect") [
    ( N "x", AttValue [ Left $ show x ] )
  , ( N "y", AttValue [ Left $ show y ] )
@@ -95,8 +108,10 @@ svgToElem (Rect x y w h sw cf cs)
  , ( N "fill", AttValue [ Left $ mkColorStr cf ] )
  , ( N "stroke", AttValue [ Left $ mkColorStr cs ] )
  ] []
+	where
+	(x, y) = getPos pw ph p
 
-svgToElem (Text x y s c f t)
+svgToElem pw ph (Text p s c f t)
   = Elem (N "text") [
    ( N "x", AttValue [ Left $ show x ] )
  , ( N "y", AttValue [ Left $ show y ] )
@@ -104,35 +119,41 @@ svgToElem (Text x y s c f t)
  , ( N "font-size", AttValue [ Left $ show s ] )
  , ( N "fill", AttValue [ Left $ mkColorStr c ] )
  ] [ CString False t () ]
+	where
+	(x, y) = getPos pw ph p
 
-svgToElem (Circle x y r c)
+svgToElem pw ph (Circle p r c)
   = Elem (N "circle") [
        ( N "cx", AttValue [ Left $ show x ] )
      , ( N "cy", AttValue [ Left $ show y ] )
      , ( N "r", AttValue [ Left $ show r ] )
      , ( N "fill", AttValue [ Left $ mkColorStr c ] )
      ] []
+	where
+	(x, y) = getPos pw ph p
 
-svgToElem (Image x y w h p)
+svgToElem pw ph (Image p w h path)
   = Elem (N "image") [
        ( N "x", AttValue [ Left $ show x ] )
      , ( N "y", AttValue [ Left $ show y ] )
      , ( N "width", AttValue [ Left $ show w ] )
      , ( N "height", AttValue [ Left $ show h ] )
-     , ( N "xlink:href", AttValue [ Left p ] )
+     , ( N "xlink:href", AttValue [ Left path ] )
      ] []
+	where
+	(x, y) = getPos pw ph p
 
-svgToElem (Group trs svgs)
+svgToElem pw ph (Group trs svgs)
   = Elem (N "g") (
       map (\ tr -> let a = showTrans tr
                     in ( N "transform", AttValue [ Left a ] ) ) trs
-     ) $ map (flip CElem () . svgToElem) svgs
+     ) $ map (flip CElem () . svgToElem pw ph) svgs
 
 
 svgToXml :: Double -> Double -> [ SVG ] -> Document ()
 svgToXml w h svgs
   = Document prlg ent
-      (Elem (N "svg") (emAtt w h) $ map (flip CElem () . svgToElem) svgs) els
+      (Elem (N "svg") (emAtt w h) $ map (flip CElem () . svgToElem w h) svgs) els
 
 pmsc :: [Misc]
 pmsc    = [ Comment " MADE BY SVG.HS " ]
