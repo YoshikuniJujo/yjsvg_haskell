@@ -14,13 +14,15 @@ import Text.XML.HaXml.Pretty
 import Data.Word(Word8)
 
 yjsvgVersion :: (Int, String)
-yjsvgVersion = (2, "0.1.7")
+yjsvgVersion = (3, "0.1.8")
+
+type Font = String
 
 data SVG   = Line Double Double Double Double Color Double |
              Polyline [ ( Double, Double ) ] Color Color Double |
              Rect Double Double Double Double Double Color Color |
 	     Circle Double Double Double Color |
-             Text Double Double Double Color String |
+             Text Double Double Double Color Font String |
 	     Image Double Double Double Double FilePath |
 	     Group [ Transform ] [ SVG ]
 	deriving Show
@@ -94,10 +96,11 @@ svgToElem (Rect x y w h sw cf cs)
  , ( N "stroke", AttValue [ Left $ mkColorStr cs ] )
  ] []
 
-svgToElem (Text x y s c t)
+svgToElem (Text x y s c f t)
   = Elem (N "text") [
    ( N "x", AttValue [ Left $ show x ] )
  , ( N "y", AttValue [ Left $ show y ] )
+ , ( N "font-family", AttValue [ Left f ] )
  , ( N "font-size", AttValue [ Left $ show s ] )
  , ( N "fill", AttValue [ Left $ mkColorStr c ] )
  ] [ CString False t () ]
