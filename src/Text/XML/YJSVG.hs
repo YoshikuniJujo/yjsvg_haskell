@@ -14,7 +14,7 @@ import Text.XML.HaXml.Pretty
 import Data.Word(Word8)
 
 yjsvgVersion :: (Int, String)
-yjsvgVersion = (1, "0.1.6")
+yjsvgVersion = (2, "0.1.7")
 
 data SVG   = Line Double Double Double Double Color Double |
              Polyline [ ( Double, Double ) ] Color Color Double |
@@ -23,6 +23,7 @@ data SVG   = Line Double Double Double Double Color Double |
              Text Double Double Double Color String |
 	     Image Double Double Double Double FilePath |
 	     Group [ Transform ] [ SVG ]
+	deriving Show
 data Color
 	= ColorName{
 		colorName :: String
@@ -32,6 +33,7 @@ data Color
 		colorGreen ::  Word8,
 		colorBlue ::  Word8
 	 }
+	deriving Show
 
 mkColorStr :: Color -> String
 mkColorStr ColorName{colorName = n} = n
@@ -44,6 +46,7 @@ data Transform = Matrix Double Double Double Double Double Double |
 		 Rotate Double (Maybe (Double, Double)) |
 		 SkewX Double |
 		 SkewY Double
+	deriving Show
 
 showTrans :: Transform -> String
 showTrans (Translate tx ty) = "translate(" ++ show tx ++ "," ++ show ty ++ ")"
