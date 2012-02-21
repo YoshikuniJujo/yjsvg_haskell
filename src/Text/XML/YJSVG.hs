@@ -15,13 +15,13 @@ import Text.XML.HaXml.Pretty
 import Data.Word(Word8)
 
 yjsvgVersion :: (Int, String)
-yjsvgVersion = (3, "0.1.8")
+yjsvgVersion = (6, "0.1.11")
 
 type Font = String
 data Position
 	= TopLeft{posX :: Double, posY :: Double}
 	| Center{posX :: Double, posY :: Double}
-	deriving Show
+	deriving (Show, Read)
 
 getPos :: Double -> Double -> Position -> (Double, Double)
 getPos _ _ TopLeft{posX = x, posY = y} = (x, y)
@@ -34,7 +34,7 @@ data SVG   = Line Position Position Color Double |
              Text Position Double Color Font String |
 	     Image Position Double Double FilePath |
 	     Group [ Transform ] [ SVG ]
-	deriving Show
+	deriving (Show, Read)
 data Color
 	= ColorName{
 		colorName :: String
@@ -44,7 +44,7 @@ data Color
 		colorGreen ::  Word8,
 		colorBlue ::  Word8
 	 }
-	deriving Show
+	deriving (Show, Read)
 
 mkColorStr :: Color -> String
 mkColorStr ColorName{colorName = n} = n
@@ -57,15 +57,12 @@ data Transform = Matrix Double Double Double Double Double Double |
 		 Rotate Double (Maybe (Double, Double)) |
 		 SkewX Double |
 		 SkewY Double
-	deriving Show
+	deriving (Show, Read)
 
 showTrans :: Transform -> String
 showTrans (Translate tx ty) = "translate(" ++ show tx ++ "," ++ show ty ++ ")"
 showTrans (Scale sx sy) = "scale(" ++ show sx ++ "," ++ show sy ++ ")"
 showTrans _ = error "not implemented yet"
-
--- instance Show [ SVG ] where
---  show = showSVG
 
 showSVG :: Double -> Double -> [ SVG ] -> String
 showSVG w h = show . document . svgToXml w h
@@ -79,6 +76,7 @@ svgToElem pw ph (Line p1 p2 color lineWidth)
      , ( N "y2", AttValue [ Left $ show y2 ] )
      , ( N "stroke", AttValue [ Left $ mkColorStr color ] )
      , ( N "stroke-width", AttValue [ Left $ show lineWidth ] )
+	, (N "stroke-linecap", AttValue [Left "round"])
      ] []
 	where
 	(x1, y1) = getPos pw ph p1
