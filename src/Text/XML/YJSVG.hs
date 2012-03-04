@@ -30,6 +30,7 @@ getPos w h Center{posX = x, posY = y} = (x + w / 2, - y + h / 2)
 data SVG   = Line Position Position Color Double |
              Polyline [Position] Color Color Double |
              Rect Position Double Double Double Color Color |
+             Fill Color |
 	     Circle Position Double Color |
              Text Position Double Color Font String |
 	     Image Position Double Double FilePath |
@@ -108,6 +109,9 @@ svgToElem pw ph (Rect p w h sw cf cs)
  ] []
 	where
 	(x, y) = getPos pw ph p
+
+svgToElem pw ph (Fill c)
+  = svgToElem pw ph $ Rect (TopLeft 0 0) pw ph 0 c c
 
 svgToElem pw ph (Text p s c f t)
   = Elem (N "text") [
