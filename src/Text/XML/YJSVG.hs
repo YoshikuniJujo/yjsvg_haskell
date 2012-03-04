@@ -44,7 +44,7 @@ data Color
 		colorGreen ::  Word8,
 		colorBlue ::  Word8
 	 }
-	deriving (Show, Read)
+	deriving (Eq, Show, Read)
 
 mkColorStr :: Color -> String
 mkColorStr ColorName{colorName = n} = n
