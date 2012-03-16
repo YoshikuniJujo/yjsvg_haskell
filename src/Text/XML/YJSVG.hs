@@ -3,7 +3,7 @@ module Text.XML.YJSVG (
 , SVG(..)
 , Transform(..)
 , Color(..)
-, Position(..)
+, Position(..), topleft, center
 , yjsvgVersion
 ) where
 
@@ -15,13 +15,21 @@ import Text.XML.HaXml.Pretty
 import Data.Word(Word8)
 
 yjsvgVersion :: (Int, String)
-yjsvgVersion = (6, "0.1.11")
+yjsvgVersion = (7, "0.1.11a")
 
 type Font = String
 data Position
 	= TopLeft{posX :: Double, posY :: Double}
 	| Center{posX :: Double, posY :: Double}
 	deriving (Show, Read)
+
+topleft, center :: Double -> Double -> Position -> Position
+topleft w h Center{posX = x, posY = y} =
+	TopLeft{posX = x + w / 2, posY = - y + h / 2}
+topleft _ _ pos = pos
+center w h TopLeft{posX = x, posY = y} =
+	Center{posX = x - w / 2, posY = - y + h / 2}
+center _ _ pos = pos
 
 getPos :: Double -> Double -> Position -> (Double, Double)
 getPos _ _ TopLeft{posX = x, posY = y} = (x, y)
