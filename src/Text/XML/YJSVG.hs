@@ -5,6 +5,8 @@ module Text.XML.YJSVG (
 , Color(..)
 , Position(..), topleft, center
 , yjsvgVersion
+, Font(..)
+, FontWeight(..)
 ) where
 
 import Text.XML.HaXml(AttValue(..), QName(..), Prolog(..),
@@ -15,9 +17,17 @@ import Text.XML.HaXml.Pretty
 import Data.Word(Word8)
 
 yjsvgVersion :: (Int, String)
-yjsvgVersion = (7, "0.1.11a")
+yjsvgVersion = (9, "0.1.17")
 
-type Font = String
+data FontWeight = Normal | Bold deriving (Show, Read)
+weightValue :: FontWeight -> String
+weightValue Normal = "normal"
+weightValue Bold = "bold"
+
+data Font = Font{
+	fontName :: String,
+	fontWeight :: FontWeight
+ } deriving (Show, Read)
 data Position
 	= TopLeft{posX :: Double, posY :: Double}
 	| Center{posX :: Double, posY :: Double}
@@ -125,7 +135,8 @@ svgToElem pw ph (Text p s c f t)
   = Elem (N "text") [
    ( N "x", AttValue [ Left $ show x ] )
  , ( N "y", AttValue [ Left $ show y ] )
- , ( N "font-family", AttValue [ Left f ] )
+ , ( N "font-family", AttValue [ Left $ fontName f ] )
+ , ( N "font-weight", AttValue [ Left $ weightValue $ fontWeight f ] )
  , ( N "font-size", AttValue [ Left $ show s ] )
  , ( N "fill", AttValue [ Left $ mkColorStr c ] )
  ] [ CString False t () ]

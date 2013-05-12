@@ -1,2 +1,4 @@
 * add position relative to center
 * read from .svg file
+* turtle 系の対応する箇所を直すこと
+* font size も Font のなかにいれること
