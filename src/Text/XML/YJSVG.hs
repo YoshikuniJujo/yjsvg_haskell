@@ -139,7 +139,7 @@ svgToElem pw ph (Text p s c f t)
  , ( N "font-weight", AttValue [ Left $ weightValue $ fontWeight f ] )
  , ( N "font-size", AttValue [ Left $ show s ] )
  , ( N "fill", AttValue [ Left $ mkColorStr c ] )
- ] [ CString False t () ]
+ ] [ CString False (escape t) () ]
 	where
 	(x, y) = getPos pw ph p
 
@@ -236,3 +236,10 @@ svgMain = do
         = xmlParse "ougon.xml" ougonXml
   print $ document $ svgToXml 100 200 [ Rect 20 30 80 90 "black" "purple", Text 40 50 30 "underline" "purple" "good" ]
 -}
+
+escape :: String -> String
+escape "" = ""
+escape ('&' : cs) = "&amp;" ++ escape cs
+escape ('<' : cs) = "&lt;" ++ escape cs
+escape ('>' : cs) = "&gt;" ++ escape cs
+escape (c : cs) = c : escape cs
