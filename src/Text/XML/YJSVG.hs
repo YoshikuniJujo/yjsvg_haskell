@@ -18,10 +18,8 @@ weightValue :: FontWeight -> String
 weightValue Normal = "normal"
 weightValue Bold = "bold"
 
-data Font = Font{
-	fontName :: String,
-	fontWeight :: FontWeight
-	} deriving (Show, Read)
+data Font = Font{ fontName :: String, fontWeight :: FontWeight }
+	deriving (Show, Read)
 
 data Position
 	= TopLeft { posX :: Double, posY :: Double }
