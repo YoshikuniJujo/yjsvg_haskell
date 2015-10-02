@@ -92,15 +92,15 @@ showTrans (SkewY s) = "skewY(" ++ show s ++ ") "
 showTrans (Rotate s _) = "rotate(" ++ show s ++ ") "
 showTrans (Matrix a b c d e f) = "matrix(" ++ show a ++ "," ++ show b ++ "," ++ show c ++ "," ++ show d ++ "," ++ show e ++ "," ++ show f ++ ") "
 
-showTrans _ = error "not implemented yet"
+-- showTrans _ = error "not implemented yet"
 
 showSVG :: Double -> Double -> [ (Id, SVG) ] -> String
 showSVG w h = show . document . svgToXml w h
 
 svgToElem :: Double -> Double -> (Id, SVG) -> Element ()
-svgToElem pw ph (id, (Line p1 p2 color lineWidth))
+svgToElem pw ph (idn, (Line p1 p2 color lineWidth))
   = Elem (N "line") [
-       ( N "id", AttValue [ Left $ id ] )
+       ( N "id", AttValue [ Left $ idn ] )
      , ( N "x1", AttValue [ Left $ show x1 ] )
      , ( N "y1", AttValue [ Left $ show y1 ] )
      , ( N "x2", AttValue [ Left $ show x2 ] )
@@ -113,9 +113,9 @@ svgToElem pw ph (id, (Line p1 p2 color lineWidth))
 	(x1, y1) = getPos pw ph p1
 	(x2, y2) = getPos pw ph p2
 
-svgToElem pw ph (id, (Polyline points fillColor lineColor lineWidth))
+svgToElem pw ph (idn, (Polyline points fillColor lineColor lineWidth))
   = Elem (N "polyline") [
-       ( N "id", AttValue [ Left $ id ] )
+       ( N "id", AttValue [ Left $ idn ] )
      , ( N "points", AttValue [ Left $ pointsToAttVal points ] )
      , ( N "fill"  , AttValue [ Left $ mkColorStr fillColor ] )
      , ( N "stroke", AttValue [ Left $ mkColorStr lineColor ] )
@@ -128,9 +128,9 @@ svgToElem pw ph (id, (Polyline points fillColor lineColor lineWidth))
     = let (x, y) = getPos pw ph p in
 	show x ++ "," ++ show y ++ " " ++ pointsToAttVal ps
 
-svgToElem pw ph (id, (Rect p w h sw cf cs))
+svgToElem pw ph (idn, (Rect p w h sw cf cs))
   = Elem (N "rect") [
-   ( N "id", AttValue [ Left $ id ] )
+   ( N "id", AttValue [ Left $ idn ] )
  , ( N "x", AttValue [ Left $ show x ] )
  , ( N "y", AttValue [ Left $ show y ] )
  , ( N "width", AttValue [ Left $ show w ] )
@@ -142,12 +142,12 @@ svgToElem pw ph (id, (Rect p w h sw cf cs))
 	where
 	(x, y) = getPos pw ph p
 
-svgToElem pw ph (id, (Fill c))
-  = svgToElem pw ph $ (id, Rect (TopLeft 0 0) pw ph 0 c c)
+svgToElem pw ph (idn, (Fill c))
+  = svgToElem pw ph $ (idn, Rect (TopLeft 0 0) pw ph 0 c c)
 
-svgToElem pw ph (id, (Text p s c f t))
+svgToElem pw ph (idn, (Text p s c f t))
   = Elem (N "text") [
-   ( N "id", AttValue [ Left $ id ] )
+   ( N "id", AttValue [ Left $ idn ] )
  , ( N "x", AttValue [ Left $ show x ] )
  , ( N "y", AttValue [ Left $ show y ] )
  , ( N "font-family", AttValue [ Left $ fontName f ] )
@@ -158,9 +158,9 @@ svgToElem pw ph (id, (Text p s c f t))
 	where
 	(x, y) = getPos pw ph p
 
-svgToElem pw ph (id, (Circle p r c))
+svgToElem pw ph (idn, (Circle p r c))
   = Elem (N "circle") [
-       ( N "id", AttValue [ Left $ id ] )
+       ( N "id", AttValue [ Left $ idn ] )
      ,  ( N "cx", AttValue [ Left $ show x ] )
      , ( N "cy", AttValue [ Left $ show y ] )
      , ( N "r", AttValue [ Left $ show r ] )
@@ -169,9 +169,9 @@ svgToElem pw ph (id, (Circle p r c))
 	where
 	(x, y) = getPos pw ph p
 
-svgToElem pw ph (id, (Image p w h path))
+svgToElem pw ph (idn, (Image p w h path))
   = Elem (N "image") [
-      ( N "id", AttValue [ Left $ id ] )
+      ( N "id", AttValue [ Left $ idn ] )
      , ( N "x", AttValue [ Left $ show x ] )
      , ( N "y", AttValue [ Left $ show y ] )
      , ( N "width", AttValue [ Left $ show w ] )
@@ -181,7 +181,7 @@ svgToElem pw ph (id, (Image p w h path))
 	where
 	(x, y) = getPos pw ph p
 
-svgToElem pw ph (id, (Use p w h path))
+svgToElem pw ph (_idn, (Use p w h path))
   = Elem (N "use") [
        ( N "x", AttValue [ Left $ show x ] )
      , ( N "y", AttValue [ Left $ show y ] )
@@ -192,12 +192,12 @@ svgToElem pw ph (id, (Use p w h path))
 	where
 	(x, y) = getPos pw ph p
 
-svgToElem pw ph (id, (Group trs svgs))
+svgToElem pw ph (_idn, (Group trs svgs))
   = Elem (N "g")  
       [ ( N "transform", AttValue (map Left (map showTrans trs))) ]
       $ map (flip CElem () . svgToElem pw ph) svgs
 
-svgToElem pw ph (id, (Defs svgs))
+svgToElem pw ph (_idn, (Defs svgs))
   = Elem (N "defs")  
      [] (map (flip CElem () . svgToElem pw ph) svgs)
 
