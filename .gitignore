@@ -3,3 +3,4 @@
 /_darcs/
 /*.ebuild
 /tmp/
+/.stack-work

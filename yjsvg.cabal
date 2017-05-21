@@ -2,7 +2,7 @@ Build-Type:	Simple
 Cabal-Version:	>= 1.8
 
 Name:		yjsvg
-Version:	0.2.0.0
+Version:	0.2.0.1
 stability:	experimental
 author:		YoshikuniJujo <PAF01143@nifty.ne.jp>
 maintainer:	YoshikuniJujo <PAF01143@nifty.ne.jp>
@@ -30,5 +30,5 @@ source-repository	this
 Library
   Hs-source-dirs:	src
   Exposed-Modules:	Text.XML.YJSVG
-  Build-Depends:	base == 4.*, HaXml == 1.24.*
+  Build-Depends:	base == 4.*, HaXml == 1.25.*
   Ghc-Options:		-Wall -fno-warn-tabs
